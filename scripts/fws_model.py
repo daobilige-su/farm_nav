@@ -10,6 +10,7 @@ import sys
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String, Float32MultiArray
 from tf import transformations
+import tf
 
 
 class FwsModel:
@@ -32,6 +33,12 @@ class FwsModel:
         self.fws_cmd_pub = rospy.Publisher('fws_cmd', Float32MultiArray, queue_size=10)
         self.cmd_vel_sub = rospy.Subscriber("cmd_vel", Twist, self.compute_fws_cmd)
         self.fws_meas_sub = rospy.Subscriber("fws_meas", Float32MultiArray, self.compute_odom)
+
+        self.br = tf.TransformBroadcaster()
+
+    def tf_broadcast(self, trans, quat, child_frame, parent_frame):
+        self.br.sendTransform((trans[0], trans[1], trans[2]), (quat[0], quat[1], quat[2], quat[3]), rospy.Time.now(),
+                              child_frame, parent_frame)
 
 
     def compute_fws_cmd(self, data):
@@ -305,6 +312,9 @@ class FwsModel:
         odom_msg.pose.pose.orientation.w = Pth_quat[3]
 
         self.odom_pub.publish(odom_msg)
+
+        # publish odom tf
+        self.tf_broadcast([Px, Py, 0.0], [0.0, 0.0, Pth_quat[2], Pth_quat[3]], 'base_link', 'odom')
 
         # restore results
         self.pose = np.array([Px, Py, Pth]).reshape((3, 1))
