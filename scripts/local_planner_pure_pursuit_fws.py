@@ -11,6 +11,7 @@ from nav_msgs.msg import Odometry, Path
 from std_msgs.msg import String, Float32MultiArray
 from tf import transformations
 import tf
+from transform_tools import *
 
 
 class PurePursuitPlannerFws:
@@ -28,8 +29,24 @@ class PurePursuitPlannerFws:
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=2)
         self.cmd_vel_sub = rospy.Subscriber("/global_plan", Path, self.update_global_plan)
 
-    def update_global_plan(self, global_path):
-        pass
+    def update_global_plan(self, global_path_msg):
+        pose_num = len(global_path_msg.poses)
+        self.global_plan = np.zeros((pose_num, 6))
+
+        for n in range(pose_num):
+            pose_trans_quat = np.array([global_path_msg.poses[n].pose.position.x,
+                                        global_path_msg.poses[n].pose.position.y,
+                                        global_path_msg.poses[n].pose.position.z,
+                                        global_path_msg.poses[n].pose.orientation.x,
+                                        global_path_msg.poses[n].pose.orientation.y,
+                                        global_path_msg.poses[n].pose.orientation.z,
+                                        global_path_msg.poses[n].pose.orientation.w])
+
+            trans = pose_trans_quat[0:3]
+            quat = pose_trans_quat[3:7]
+            ypr = quat2ypr(quat).reshape((-1,))
+            pose_trans_ypr = np.block([trans, ypr])
+            self.global_plan[n, :] = pose_trans_ypr.copy()
 
     def compute_plan(self):
         # skip if the global plan is None
