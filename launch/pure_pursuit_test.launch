@@ -13,6 +13,7 @@
         <param name="controller_frequency" value="1" />
         <param name="controller_patience" value="15" />
         <param name="base_local_planner" value="regulated_pure_pursuit_controller/RegulatedPurePursuitController" />
+        <remap from="/cmd_vel" to="/cmd_vel_from_move_base"/>
     </node>
 
 <!--      --><!--   gmapping -->
@@ -35,6 +36,9 @@
 
     <!--   als -->
     <include file="$(find als_ros)/launch/mcl_patrol_robot.launch" />
+
+    <!--   local_planner_pure_pursuit_fws -->
+    <node pkg="farm_nav" type="local_planner_pure_pursuit_fws.py" name="local_planner_pure_pursuit_fws" output="screen" />
 
     <!--   rviz -->
 <!--     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find patrol_robot)/rviz_cfg/gmapping.rviz"/> -->

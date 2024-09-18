@@ -21,7 +21,7 @@ class PurePursuitPlannerFws:
         self.controller_freq = 5
         self.look_ahead_dist = 0.3
         self.v_dist_max = 0.2
-        self.v_max = 0.1
+        self.v_max = 0.5
         self.w_heading_max = np.deg2rad(20)
         self.w_max = np.deg2rad(20)
 
@@ -36,7 +36,8 @@ class PurePursuitPlannerFws:
 
         # publishers & subscribers
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=2)
-        self.global_plan_sub = rospy.Subscriber("/global_plan", Path, self.update_global_plan)
+        # self.global_plan_sub = rospy.Subscriber("/global_plan", Path, self.update_global_plan)
+        self.global_plan_sub = rospy.Subscriber("/move_base/NavfnROS/plan", Path, self.update_global_plan)
 
     def update_global_plan(self, global_path_msg):
         pose_num = len(global_path_msg.poses)
